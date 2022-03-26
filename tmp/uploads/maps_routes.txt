@@ -1,0 +1,559 @@
+<template>
+  <div class="tabcontent p-3">
+    <ul class="nav nav-tabs nav-fill mb-3" id="myTab" role="tablist">
+      <!-- <li class="nav-item" role="presentation">
+        <button
+          class="nav-link active"
+          id="home-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#home"
+          type="button"
+          role="tab"
+          aria-controls="home"
+          aria-selected="true"
+        >
+          Home
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="profile-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#profile"
+          type="button"
+          role="tab"
+          aria-controls="profile"
+          aria-selected="false"
+        >
+          Convites
+        </button>
+      </li> -->
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="routes-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#routes"
+          type="button"
+          role="tab"
+          aria-controls="routes"
+          aria-selected="false"
+        >
+          Rotas
+        </button>
+      </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+      <div
+        class="tab-pane fade show active"
+        id="home"
+        role="tabpanel"
+        aria-labelledby="home-tab"
+      >
+        ...
+      </div>
+      <div
+        class="tab-pane fade"
+        id="profile"
+        role="tabpanel"
+        aria-labelledby="profile-tab"
+      >
+        ...
+      </div>
+      <div
+        class="tab-pane fade"
+        id="routes"
+        role="tabpanel"
+        aria-labelledby="routes-tab"
+      >
+        <div class="pb-3">
+          <button
+            class="btn btn-orange"
+            data-bs-toggle="modal"
+            data-bs-target="#newRouteModal"
+          >
+            <i class="fa fa-calendar-alt"></i>
+            Programar transferências
+          </button>
+          <button
+            class="btn btn-orange float-end"
+            data-bs-toggle="modal"
+            data-bs-target="#filterModal"
+          >
+            <i class="fa fa-filter"></i>
+            Filtrar
+          </button>
+        </div>
+
+        <div class="pb-3">
+          <div class="col-3">
+            <div class="card p-3">
+              <div class="d-block">
+                <div class="d-inline-block align-top pe-3">
+                  <CircularProgress
+                    :options="{ color: 'success', value: 0.6 }"
+                  ></CircularProgress>
+                </div>
+                <div class="d-inline-block align-top">
+                  <small class="d-block">{{ 16 }} concluídas</small>
+                  <small class="d-block text-secondary">Faltam {{ 13 }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Indicadores</th>
+                <th scope="col">Origem</th>
+                <!-- <th scope="col"></th> -->
+                <th scope="col">Duração</th>
+                <!-- <th scope="col">Motorista</th> -->
+                <th scope="col">Pacotes</th>
+                <th scope="col">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="mapRoute in mapRoutes" :key="mapRoute.routeId">
+                <td>
+                  <span class="badge bg-success">Concluído</span>
+                </td>
+                <td title="Avenida Brasil 105 Centro Curitiba - PR">
+                  {{ mapRoute.cdAddress.name }}
+                </td>
+                <!-- <td></td> -->
+                <td title="Rua Trevisan 10 Centro Maringá - PR">
+                  {{ mapRoute.durationHours }}
+                </td>
+                <!-- <td>Luiz Henrique</td> -->
+                <td>15</td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-orange"
+                    data-bs-toggle="modal"
+                    data-bs-target="#mapRoutesModal"
+                    @click="getRoute(mapRoute)"
+                  >
+                    <i class="fa fa-eye"></i> Ver detalhes
+                  </button>
+                </td>
+              </tr>
+              <!-- <tr>
+                <td>
+                  <span class="badge bg-success">Em andamento</span>
+                </td>
+                <td>PR-01</td>
+                <td>
+                  <i class="fa fa-arrow-right"></i>
+                </td>
+                <td>SC-01</td>
+                <td>Cláudio Santos</td>
+                <td>8</td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-orange"
+                    @click="openScheduleModal()"
+                  >
+                    <i class="fa fa-eye"></i> Ver detalhes
+                  </button>
+                </td>
+              </tr> -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="modals">
+      <div
+        class="modal fade"
+        id="mapRoutesModal"
+        tabindex="-1"
+        aria-labelledby="mapRoutesModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header bg-orange text-white border-0">
+              <h5 class="modal-title" id="mapRoutesModalLabel">Rotas</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <div class="col">
+                  <div
+                    class="vstack gap-2"
+                    v-for="(route, index) in routesList.legs"
+                    :key="'RoutesList' + route.id"
+                  >
+                    <div class="border-bottom">
+                      <h5>Order: {{ index + 1 }}</h5>
+                      <b>Start: </b>
+                      <small class="text-muted">{{
+                        route.start_address
+                      }}</small>
+                      <p>
+                        <b>End: </b>
+                        <small class="text-muted">{{
+                          route.end_address
+                        }}</small>
+                      </p>
+                      <p>
+                        <span class="badge bg-orange"
+                          ><b>Duration:</b> {{ route.duration.text }}</span
+                        >
+                        <span class="badge bg-success"
+                          ><b>Distance:</b> {{ route.distance.text }}</span
+                        >
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="map" id="map"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '@/theme/core.css';
+import { Modal } from 'bootstrap';
+import CircularProgress from '@/components/CircularProgress';
+import { Loader } from '@googlemaps/js-api-loader';
+// import MarkerWithLabel from '@googlemaps/markerwithlabel';
+
+export default {
+  name: 'Transfers',
+  components: {
+    CircularProgress,
+  },
+  setup() {
+    const loader = new Loader({
+      apiKey: 'AIzaSyD8iivaLw4OflC-dulk0UYxgqTWMJyb7lw',
+    });
+
+    return { loader };
+  },
+  async mounted() {
+    this.google = await this.loader.load();
+    this.google = window.google;
+    this.getRoute();
+
+    this.setModals();
+  },
+  data() {
+    return {
+      routesList: [],
+      distributionCenters: [{ id: 23, code: 'CD de Curitiba', cityId: 367 }],
+      newRouteModal: null,
+      mapRoutes: [
+        {
+          routeId: 143,
+          durationHours: '4:30',
+          cdAddress: {
+            name: 'Cd 1',
+            street: 'Rua um ',
+            location: { lat: -25.47759969285042, lng: -49.29161817294445 },
+          },
+          stops: [
+            {
+              order: 1,
+              stopTypeId: 1,
+              address: {
+                lat: -25.476312855278277,
+                lng: -49.292376007496195,
+              },
+              packagesQuantity: 30,
+              date: '2021-11-20',
+              hour: ' 15:00',
+            },
+            {
+              order: 2,
+              stopTypeId: 2,
+              address: {
+                lat: -25.48905463161622,
+                lng: -49.2803643651149,
+              },
+              recipientName: 'Gabriel Geraldo',
+              date: '2021-11-20',
+              packageCodebars: ['82734123', '9873642'],
+            },
+            {
+              order: 3,
+              stopTypeId: 1,
+              address: {
+                lat: -25.46324677249716,
+                lng: -49.29021049872687,
+              },
+              packagesQuantity: 30,
+              date: '2021-11-20',
+              hour: ' 15:00',
+            },
+            {
+              order: 4,
+              stopTypeId: 1,
+              address: {
+                lat: -25.475689179805187,
+                lng: -49.304439873483965,
+              },
+              packagesQuantity: 30,
+              date: '2021-11-20',
+              hour: ' 15:00',
+            },
+          ],
+        },
+        {
+          routeId: 143,
+          durationHours: '4:30',
+          cdAddress: {
+            name: 'Cd 1',
+            street: 'Rua um ',
+            location: { lat: -25.47759969285042, lng: -49.29161817294445 },
+          },
+          stops: [
+            {
+              order: 1,
+              stopTypeId: 1,
+              address: {
+                lat: -25.47406197996173,
+                lng: -49.27705988355128,
+              },
+              packagesQuantity: 30,
+              date: '2021-11-20',
+              hour: ' 15:00',
+            },
+            {
+              order: 2,
+              stopTypeId: 2,
+              address: {
+                lat: -25.48905463161622,
+                lng: -49.2803643651149,
+              },
+              recipientName: 'Gabriel Geraldo',
+              date: '2021-11-20',
+              packageCodebars: ['82734123', '9873642'],
+            },
+            {
+              order: 3,
+              stopTypeId: 1,
+              address: {
+                lat: -25.487698784082422,
+                lng: -49.29405435999756,
+              },
+              packagesQuantity: 30,
+              date: '2021-11-20',
+              hour: ' 15:00',
+            },
+          ],
+        },
+      ],
+    };
+  },
+  methods: {
+    setModals() {
+      this.newRouteModal = new Modal(document.getElementById('mapRoutesModal'));
+    },
+
+    getRoute(payload) {
+      console.log('PAYLOAD', payload);
+      const directionsService = new this.google.maps.DirectionsService();
+      const directionsRenderer = new this.google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+      });
+
+      const map = new this.google.maps.Map(document.getElementById('map'), {
+        center: { lat: -25.4326537, lng: -49.2682352 },
+        zoom: 16,
+      });
+
+      directionsRenderer.setMap(map);
+
+      let waypts = [];
+
+      payload.stops.map((stop) => {
+        waypts.push({
+          location: {
+            lat: stop.address.lat,
+            lng: stop.address.lng,
+          },
+          stopover: true,
+        });
+      });
+
+      // const waypoints = payload.stops.map((stop) => {
+      //   return {
+      //     location: {
+      //       lat: stop.address.lat,
+      //       lng: stop.address.lng,
+      //     },
+      //     stopover: true,
+      //   };
+      // });
+
+      // let custonMarker = [
+      //   {
+      //     location: {
+      //       lat: payload.cdAddress.location.lat,
+      //       lng: payload.cdAddress.location.lng,
+      //     },
+      //   },
+      // ];
+
+      // payload.stops.map((stop) => {
+      //   custonMarker.push({
+      //     location: {
+      //       lat: stop.address.lat,
+      //       lng: stop.address.lng,
+      //     },
+      //   });
+      // });
+
+      directionsService
+        .route({
+          origin: new this.google.maps.LatLng(
+            payload.cdAddress.location.lat,
+            payload.cdAddress.location.lng
+          ),
+          destination: new this.google.maps.LatLng(
+            payload.cdAddress.location.lat,
+            payload.cdAddress.location.lng
+          ),
+          waypoints: waypts,
+          optimizeWaypoints: true,
+          travelMode: this.google.maps.TravelMode.DRIVING,
+          // drivingOptions: {
+          //   departureTime: new Date(),
+          //   trafficModel: 'optimistic',
+          // },
+          // provideRouteAlternatives: true,
+        })
+        .then((response) => {
+          console.log(response);
+          if (response.status === 'OK') {
+            map.fitBounds(response.routes[0].bounds);
+            // this.renderPolyline(response.routes[0].overview_path, map);
+            directionsRenderer.setDirections(response);
+            this.routesList = response.routes[0];
+
+            this.routesList.legs.forEach((element, index) => {
+              console.log('element', index);
+              new this.google.maps.Marker({
+                position: element.start_location,
+                map: map,
+                label: `${index + 1}`,
+              });
+            });
+
+            console.log('ROUTES', this.routesList);
+
+            // for (var i = 0; i < this.routesList.legs.length; i++) {
+            //   new MarkerWithLabel({
+            //     position: new this.google.maps.LatLng(
+            //       this.routesList.legs[i].start_location.lat(),
+            //       this.routesList.legs[i].start_location.lng()
+            //     ),
+            //     clickable: false,
+            //     draggable: false,
+            //     map: map,
+            //     labelContent:
+            //       '<span class="badge bg-orange"><b style="color: white; font-size: 16px;" >' +
+            //       (i + 1) +
+            //       '</b></span>',
+            //     labelAnchor: new this.google.maps.Point(-5, 0),
+            //     labelClass: 'labels',
+            //     labelInBackground: false,
+            //   });
+            // }
+
+            // let markerCounter = 1;
+            // for (var i = 0; i < response.routes[0].legs.length; i++) {
+            //   this.addMarker(
+            //     response.routes[0].legs[i].end_location,
+            //     markerCounter++,
+            //     map
+            //   );
+            // }
+
+            //Create markers.
+            // for (var i = 0; i < response.routes[0].legs.length; i++) {
+            //   let k = i + 1;
+            //   new this.google.maps.Marker({
+            //     position: new this.google.maps.LatLng(
+            //       this.routesList.legs[i].start_location.lat(),
+            //       this.routesList.legs[i].start_location.lng()
+            //     ),
+            //     map: map,
+            //     icon: {
+            //       url:
+            //         'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=' +
+            //         k +
+            //         '|FF0000|FFFFFF',
+            //       // scaledSize: new this.google.maps.Size(30, 42),
+            //     },
+            //   });
+            // }
+          } else {
+            console.log(`error fetching directions ${response.status}`);
+            directionsRenderer.setDirections({ routes: [] });
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
+
+    addMarker(position, i, map) {
+      return new this.google.maps.Marker({
+        icon:
+          'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=' +
+          i +
+          '|FF0000|000000',
+        position: position,
+        map: map,
+      });
+    },
+
+    renderPolyline(path, map) {
+      new this.google.maps.Polyline({
+        path: path,
+        geodesic: true,
+        strokeColor: '#F26321',
+        strokeOpacity: 0.5,
+        strokeWeight: 4,
+        map: map,
+      });
+    },
+  },
+};
+</script>
+
+<style scoped>
+.nav-tabs .nav-item .nav-link {
+  background-color: #fff;
+  color: #000;
+}
+.nav-tabs .nav-item .nav-link.active {
+  color: #fff;
+  background-color: #f26321;
+}
+.map {
+  height: 800px;
+}
+</style>
